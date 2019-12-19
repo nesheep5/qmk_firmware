@@ -161,8 +161,8 @@ void iota_gfx_task_user(void) {
 }
 #endif//SSD1306OLED
 
-static bool lower_pressed = false;
-static bool raise_pressed = false;
+static bool lsft_pressed = false;
+static bool rsft_pressed = false;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
@@ -180,33 +180,22 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       return false;
     case LOWER:
       if (record->event.pressed) {
-        lower_pressed = true;
         layer_on(_LOWER);
         update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
       } else {
         layer_off(_LOWER);
         update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
-        if (lower_pressed) {
-          register_code(KC_LANG2);
-          unregister_code(KC_LANG2);
-        }
-        lower_pressed = false;
       }
       return false;
       break;
     case RAISE:
       if (record->event.pressed) {
-        raise_pressed = true;
         layer_on(_RAISE);
         update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
       } else {
         layer_off(_RAISE);
         update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
-        if (raise_pressed) {
-          register_code(KC_LANG1);
-          unregister_code(KC_LANG1);
-        }
-        raise_pressed = false;
+        rsft_pressed = false;
       }
       return false;
       break;
@@ -217,6 +206,34 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
           layer_off(_ADJUST);
         }
         return false;
+    case KC_LSFT:
+      if (record->event.pressed) {
+        lsft_pressed = true;
+          register_code(KC_LSFT);
+      } else {
+          unregister_code(KC_LSFT);
+        if (lsft_pressed) {
+          register_code(KC_LANG2);
+          unregister_code(KC_LANG2);
+        }
+        lsft_pressed = false;
+      }
+      return false;
+      break;
+    case KC_RSFT:
+      if (record->event.pressed) {
+        rsft_pressed = true;
+          register_code(KC_RSFT);
+      } else {
+          unregister_code(KC_RSFT);
+        if (rsft_pressed) {
+          register_code(KC_LANG1);
+          unregister_code(KC_LANG1);
+        }
+        rsft_pressed = false;
+      }
+      return false;
+      break;
     case RGB_MOD:
       #ifdef RGBLIGHT_ENABLE
         if (record->event.pressed) {
@@ -237,8 +254,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       break;
     default:
       if (record->event.pressed) {
-        lower_pressed = false;
-        raise_pressed = false;
+        lsft_pressed = false;
+        rsft_pressed = false;
       }
       break;
   }
