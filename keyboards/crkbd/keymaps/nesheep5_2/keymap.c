@@ -206,12 +206,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
           layer_off(_ADJUST);
         }
         return false;
-    case KC_LSFT:
+    case KC_LGUI:
       if (record->event.pressed) {
         lsft_pressed = true;
-          register_code(KC_LSFT);
+          register_code(KC_LGUI);
       } else {
-          unregister_code(KC_LSFT);
+          unregister_code(KC_LGUI);
         if (lsft_pressed) {
           register_code(KC_LANG2);
           unregister_code(KC_LANG2);
@@ -220,12 +220,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       }
       return false;
       break;
-    case KC_RSFT:
+    case KC_RALT:
       if (record->event.pressed) {
         rsft_pressed = true;
-          register_code(KC_RSFT);
+          register_code(KC_RALT);
       } else {
-          unregister_code(KC_RSFT);
+          unregister_code(KC_RALT);
         if (rsft_pressed) {
           register_code(KC_LANG1);
           unregister_code(KC_LANG1);
