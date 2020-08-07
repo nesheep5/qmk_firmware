@@ -60,17 +60,17 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   /*,-----------------------------------------------------.                    ,-----------------------------------------------------.
         ESC  ,    !   ,    @   ,    #   ,    $   ,    %   ,                         ^   ,    &   ,    *   ,    (   ,    )   ,  BSPC  ,\
     |--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-       LCTL  ,  - / _ ,  = / + ,    (   ,    )   ,  ' / " ,                      KC_LEFT, KC_DOWN,   KC_UP,KC_RIGHT, XXXXXXX, XXXXXXX,\
+       LCTL  ,  - / _ ,  = / + ,    (   ,    )   ,    _   ,                      KC_LEFT, KC_DOWN,   KC_UP,KC_RIGHT, XXXXXXX, XXXXXXX,\
     |--------+--------+--------+--------+--------+--------|                    |--------+--------+--------+--------+--------+--------|
-       LSFT  ,  ` / ~ ,  \ / | ,  [ / { ,  ] / } ,  ; / : ,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_RSFT,\
+       LSFT  ,  ` / ~ ,  \ / | ,  [ / { ,  ] / } ,    ?   ,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_RSFT,\
     |--------+--------+--------+--------+--------+--------+--------|  |--------+--------+--------+--------+--------+--------+--------|
                                             CMD  , LOWER  , SPACE  ,     ENTER , RAISE  , R ALT  \
                                       //`--------------------------'  `--------------------------'
   */
   [_RAISE] = LAYOUT( \
        KC_ESC, KC_EXLM,   KC_AT, KC_HASH,  KC_DLR, KC_PERC,                      KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, KC_BSPC,\
-      KC_LCTL, KC_MINS,  KC_EQL, KC_LPRN, KC_RPRN, KC_QUOT,                      KC_LEFT, KC_DOWN,   KC_UP,KC_RIGHT, XXXXXXX, XXXXXXX,\
-      KC_LSFT,  KC_GRV, KC_BSLS, KC_LBRC, KC_RBRC, KC_SCLN,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_RSFT,\
+      KC_LCTL, KC_MINS,  KC_EQL, KC_LPRN, KC_RPRN, KC_UNDS,                      KC_LEFT, KC_DOWN,   KC_UP,KC_RIGHT, XXXXXXX, XXXXXXX,\
+      KC_LSFT,  KC_GRV, KC_BSLS, KC_LBRC, KC_RBRC, KC_QUES,                      XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, KC_RSFT,\
                                           KC_LGUI,   LOWER,  KC_SPC,     KC_ENT,   RAISE, KC_RALT \
   ),
 
@@ -161,8 +161,9 @@ void iota_gfx_task_user(void) {
 }
 #endif//SSD1306OLED
 
+static bool lower_pressed = false;
+static bool raise_pressed = false;
 static bool lsft_pressed = false;
-static bool rsft_pressed = false;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
@@ -178,24 +179,42 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         persistent_default_layer_set(1UL<<_QWERTY);
       }
       return false;
+    case KC_LSFT:
+      if (record->event.pressed) {
+        lsft_pressed = true;
+      } else {
+        lsft_pressed = false;
+      }
+      break;
     case LOWER:
       if (record->event.pressed) {
+        lower_pressed = true;
         layer_on(_LOWER);
         update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
       } else {
         layer_off(_LOWER);
         update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
+        if (lsft_pressed && lower_pressed) {
+          register_code(KC_LANG2);
+          unregister_code(KC_LANG2);
+        }
+        lower_pressed = false;
       }
       return false;
       break;
     case RAISE:
       if (record->event.pressed) {
+        raise_pressed = true;
         layer_on(_RAISE);
         update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
       } else {
         layer_off(_RAISE);
         update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
-        rsft_pressed = false;
+        if (lsft_pressed && raise_pressed) {
+          register_code(KC_LANG1);
+          unregister_code(KC_LANG1);
+        }
+        raise_pressed = false;
       }
       return false;
       break;
@@ -206,34 +225,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
           layer_off(_ADJUST);
         }
         return false;
-    case KC_LGUI:
-      if (record->event.pressed) {
-        lsft_pressed = true;
-          register_code(KC_LGUI);
-      } else {
-          unregister_code(KC_LGUI);
-        if (lsft_pressed) {
-          register_code(KC_LANG2);
-          unregister_code(KC_LANG2);
-        }
-        lsft_pressed = false;
-      }
-      return false;
-      break;
-    case KC_RALT:
-      if (record->event.pressed) {
-        rsft_pressed = true;
-          register_code(KC_RALT);
-      } else {
-          unregister_code(KC_RALT);
-        if (rsft_pressed) {
-          register_code(KC_LANG1);
-          unregister_code(KC_LANG1);
-        }
-        rsft_pressed = false;
-      }
-      return false;
-      break;
     case RGB_MOD:
       #ifdef RGBLIGHT_ENABLE
         if (record->event.pressed) {
@@ -254,8 +245,8 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       break;
     default:
       if (record->event.pressed) {
-        lsft_pressed = false;
-        rsft_pressed = false;
+        lower_pressed = false;
+        raise_pressed = false;
       }
       break;
   }
